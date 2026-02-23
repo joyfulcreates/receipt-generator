@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Color 3" POS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --bg: #2c8194;
+            --panel-bg: #2c8194;
+            --text-main: #f8fafc;
+            --accent: #1b9431;
+            /* Paper Colors */
+            --paper-white: #ffffff;
+            --paper-canary: #dedcb2;
+            --paper-blue: #dcf1ff;
+            --paper-pink: #f8daf1;
+        }
+
+        body { 
+    /*main title settings*/
+    font-family: "Fredoka", sans-serif; 
+    font-size: 3rem;                      /* Made it larger for this font style */
+     font-weight: 400;                    
+     color: #ffffff;
+      text-align: center;
+     margin-top: 30px;
+     margin-bottom: 20px;
+     padding: 0;          /* Ensures no internal "padding" is pushing the box edges away */
+    line-height: 1;
+     text-transform: uppercase;
+       /*letter-spacing: 8px;                  /* Spaced out letters look more professional */
+
+    /* Replace the URL below with your image link */
+    background: linear-gradient(rgba(15, 23, 42, 0.1), rgba(15, 23, 42, 0.1)), 
+                url('https://i.pinimg.com/1200x/cb/c8/7a/cbc87a832a20d2068e41b7c79d05955b.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* Keeps the image still while you scroll */
+    color: var(--text-main);
+    display: flex; 
+    flex-direction: column;
+    align-items: center; 
+    padding: 20px; 
+    margin: 0; 
+    min-height: 100vh;
+}
+
+        .top-container { display: flex; gap: 20px; width: 100%; max-width: 1050px; margin-bottom: 30px; }
+
+        .panel { 
+            background: var(--panel-bg); padding: 25px; border-radius: 16px; 
+            flex: 1; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.1);
+        }
+/*how to change text color below*/
+        h3 { margin: 0 0 5px 0; font-size: 0.85rem; text-transform: uppercase; color: #1a304f; letter-spacing: 1px;
+       padding: 0px; }
+        input, textarea, select { 
+            background: #0f172a; color: white; border: 1px solid #3477d4; 
+            padding: 10px; border-radius: 8px; width: 100%; box-sizing: border-box;
+            margin-bottom: 8px; font-family: inherit; font-size: 14px;
+        }
+        
+        .input-group { display: flex; gap: 5px; margin-bottom: 5px; }
+        .qty-in { width: 60px !important; text-align: center; }
+        
+        button { color: white; border: none; cursor: pointer; font-weight: bold; border-radius: 8px; transition: 0.2s; padding: 12px; }
+        .add-btn { background: #6a95d1; width: 100%; margin-top: 5px; }
+        .print-btn { background: var(--accent); width: 100%; margin-top: 20px; font-size: 1.1rem; }
+        .reset-btn { background: #ef4444; width: 100%; margin-top: 10px; opacity: 0.8; }
+
+        /* Receipt Visuals - 3 INCH WIDTH */
+        .receipt-design {
+            color: #333; font-family: 'Courier New', Courier, monospace !important;
+            padding: 20px; font-size: 12px; box-sizing: border-box; line-height: 1.3;
+            width: 3in; margin: 0 auto; transition: background 0.3s ease;
+        }
+
+        /* Paper Color Themes */
+        .theme-white { background: var(--paper-white); }
+        .theme-canary { background: var(--paper-canary); }
+        .theme-blue { background: var(--paper-blue); }
+        .theme-pink { background: var(--paper-pink); }
+
+        #live-preview { border-radius: 4px; min-height: 500px; box-shadow: none !important; }
+
+        /* Printer Viewport */
+        .printer-viewport {
+            width: 100%; max-width: 400px; position: relative;
+            overflow: hidden; padding-top: 45px; 
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .printer-head {
+            background: #334155; height: 45px; width: 3.2in; border-radius: 8px 8px 2px 2px;
+            border-bottom: 6px solid #000; z-index: 100; position: absolute; top: 0;
+        }
+
+        .slot-line {
+            position: absolute; bottom: 8px; left: 5%; width: 90%; height: 4px;
+            background: #000; border-radius: 10px;
+        }
+
+        #final-receipt { opacity: 0; transform: translateY(-100%); z-index: 5; border-bottom: 4px dotted #ccc; }
+        .print-active { animation: printDown 2.5s steps(60) forwards; }
+
+        @keyframes printDown {
+            0% { transform: translateY(-100%); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(0%); opacity: 1; }
+        }
+
+        /* Column Layout */
+        .column-labels { display: flex; border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 5px; font-weight: bold; font-size: 10px; }
+        .r-header { text-align: center; border-bottom: 1px dashed #aaa; padding-bottom: 10px; margin-bottom: 10px; }
+        .r-info { font-size: 11px; display: block; white-space: pre-wrap; margin-bottom: 3px; }
+        .item-row { display: flex; align-items: baseline; margin: 4px 0; }
+        .qty-col { width: 35px; flex-shrink: 0; }
+        .item-col { flex-grow: 1; overflow-wrap: break-word;text-align: left }
+        .amt-col { text-align: right; width: 75px; flex-shrink: 0; }
+        .auth-block { margin-top: 10px; padding: 8px 0; border-top: 1px dashed #ccc; font-size: 10px; }
+        .totals-section { border-top: 2px solid #333; padding-top: 8px; text-align: left}
+        .total-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+        .grand-total { font-weight: bold; font-size: 15px; margin-top: 5px; border-top: 1px solid #eee; padding-top: 5px; }
+
+        @media print {
+            /* This line hides the title during printing/PDF saving */
+            .main-title, .top-container, .printer-head { display: none !important;}
+            .top-container, .printer-head { display: none !important; }
+            .printer-viewport { overflow: visible; padding: 0; }
+            body { background: white; }
+            #final-receipt { position: static; transform: none !important; opacity: 1 !important; margin: 0 auto; box-shadow: none; border-bottom: none;}
+
+        }
+    </style>
+</head>
+<body>
+<h1 class="main-title">Receipt Generator</h1>
+
+    <div class="top-container">
+        <div class="panel">
+            <h3>Color options</h3>
+            <select id="colorSelect" onchange="updateStyle()">
+                <option value="theme-white">Standard White</option>
+                <option value="theme-canary">Canary Yellow</option>
+                <option value="theme-blue">Baby Blue</option>
+                <option value="theme-pink">Pretty Pink</option>
+            </select>
+             <h3>Receipt Info</h3>
+            <input type="text" id="storeIn" placeholder="Store Name" oninput="updateAll()" value="OFFICE ARCHIVE">
+            <textarea id="addrIn" placeholder="Address" oninput="updateAll()">99 Legacy Way&#10;Portland, OR 97205</textarea>
+            <input type="text" id="phoneIn" placeholder="Phone" oninput="updateAll()" value="TEL: 503-555-0122">
+            <input type="date" id="dateIn" oninput="updateAll()">
+            
+            <h3 style="margin-top:15px">Items</h3>
+            <div id="items-list">
+                <div class="input-group">
+                    <input type="text" placeholder="QTY" class="qty-in" oninput="updateAll()">
+                    <input type="text" placeholder="ITEM" class="n-in" oninput="updateAll()">
+                    <input type="text" placeholder="AMT" class="p-in" style="width: 100px" oninput="updateAll()">
+                </div>
+            </div>
+            <button class="add-btn" onclick="addRow()">+ Add Item</button>
+
+            <h3 style="margin-top:15px">Totals</h3>
+            <textarea id="subtotalIn" placeholder="Custom Subtotal Info (e.g. Total Before Discount: $100)" oninput="updateAll()"></textarea>
+            <input type="text" id="totalIn" placeholder="Enter Final Total" oninput="updateAll()">
+            <button class="print-btn" onclick="triggerPrint()">GENERATE & PRINT</button>
+            <button class="reset-btn" onclick="resetAll()">Clear</button>
+        </div>
+
+        <div class="panel" style="display:flex; flex-direction:column; align-items:center;">
+            <h1.5>Li ve Preview</h1.5>
+            <div id="live-preview" class="receipt-design theme-white">
+                <div class="r-header">
+                    <strong id="p-name"></strong><br>
+                    <span id="p-addr" class="r-info"></span>
+                    <span id="p-phone" class="r-info"></span>
+                    <small id="p-date"></small> | <small>#DRAFT</small>
+                </div>
+                
+                <div class="column-labels">
+                    <div class="qty-col">QTY</div>
+                    <div class="item-col">ITEM</div>
+                    <div class="amt-col">AMT</div>
+                </div>
+                
+                <div id="p-items"></div>
+
+                <div class="auth-block">
+                    <div class="total-row"><span>Type:</span><span>SALE / CREDIT</span></div>
+                    <div class="total-row"><span>Auth:</span><span id="p-auth">------</span></div>
+                    <div class="total-row" style="margin-top:5px"><span>Tax (8.25%)</span><span id="p-tax">--</span></div>
+                </div>
+
+                <div class="totals-section">
+                    <div class="total-row" style="white-space: pre-wrap;"><span id="p-subtotal" style="width:100%"></span></div>
+                    <div class="total-row grand-total"><span>TOTAL</span><span id="p-total"></span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="printer-viewport">
+        <div class="printer-head"><div class="slot-line"></div></div>
+        
+        <div id="final-receipt" class="receipt-design theme-white">
+            <div class="r-header">
+                <strong id="f-name"></strong><br>
+                <span id="f-addr" class="r-info"></span>
+                <span id="f-phone" class="r-info"></span>
+                <small id="f-date"></small> | <small id="f-id"></small>
+            </div>
+            
+            <div class="column-labels">
+                <div class="qty-col">QTY</div>
+                <div class="item-col">ITEM</div>
+                <div class="amt-col">AMT</div>
+            </div>
+            
+            <div id="f-items"></div>
+
+            <div class="auth-block">
+                <div class="total-row"><span>Type:</span><span>SALE / CREDIT</span></div>
+                <div class="total-row"><span>Auth:</span><span id="f-auth"></span></div>
+                <div class="total-row" style="margin-top:5px"><span>Tax (8.25%)</span><span id="f-tax"></span></div>
+            </div>
+
+            <div class="totals-section">
+                <div class="total-row" style="white-space: pre-wrap;"><span id="f-subtotal" style="width:100%"></span></div>
+                <div class="total-row grand-total"><span>TOTAL</span><span id="f-total"></span></div>
+            </div>
+            <div style="text-align:center; margin-top: 15px; font-size: 10px; color: #888;">
+                THANK YOU FOR VISITING!
+            </div>
+        </div>
+    </div>
+
+<script>
+    let currentAuth = Math.floor(100000 + Math.random() * 900000);
+
+    window.onload = () => {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('dateIn').value = today;
+        document.getElementById('p-auth').innerText = currentAuth;
+        updateAll();
+    };
+
+    function updateStyle() {
+        const colorClass = document.getElementById('colorSelect').value;
+        const preview = document.getElementById('live-preview');
+        const final = document.getElementById('final-receipt');
+        
+        preview.className = 'receipt-design ' + colorClass;
+        final.className = 'receipt-design ' + colorClass;
+    }
+
+    function addRow() {
+        const div = document.createElement('div');
+        div.className = 'input-group';
+        div.innerHTML = `
+            <input type="text" placeholder="QTY" class="qty-in" oninput="updateAll()">
+            <input type="text" placeholder="Item" class="n-in" oninput="updateAll()">
+            <input type="text" placeholder="AMT" class="p-in" style="width: 100px" oninput="updateAll()">`;
+        document.getElementById('items-list').appendChild(div);
+    }
+
+    function updateAll() {
+        const store = document.getElementById('storeIn').value.toUpperCase();
+        const addr = document.getElementById('addrIn').value;
+        const phone = document.getElementById('phoneIn').value;
+        const date = document.getElementById('dateIn').value;
+        const subInput = document.getElementById('subtotalIn').value;
+        const totalInput = document.getElementById('totalIn').value;
+
+        // Auto-Tax Logic: Still looks for numbers but doesn't break if it finds text
+        let taxDisplay = "--";
+        const numericSub = parseFloat(subInput.replace(/[^0-9.]/g, ''));
+        if(!isNaN(numericSub) && subInput.trim() !== "") {
+            taxDisplay = "$" + (numericSub * 0.0825).toFixed(2);
+        }
+
+        [ 'p', 'f' ].forEach(pre => {
+            document.getElementById(`${pre}-name`).innerText = store;
+            document.getElementById(`${pre}-addr`).innerText = addr;
+            document.getElementById(`${pre}-phone`).innerText = phone;
+            document.getElementById(`${pre}-date`).innerText = date;
+            document.getElementById(`${pre}-subtotal`).innerText = subInput || "SUBTOTAL: $0.00";
+            document.getElementById(`${pre}-total`).innerText = totalInput || "$0.00";
+            document.getElementById(`${pre}-tax`).innerText = taxDisplay;
+        });
+
+        const qtys = document.querySelectorAll('.qty-in'),
+              names = document.querySelectorAll('.n-in'),
+              prices = document.querySelectorAll('.p-in');
+        
+        let html = '';
+        names.forEach((n, i) => {
+            if(n.value || prices[i].value) {
+                html += `
+                <div class="item-row">
+                    <div class="qty-col">${qtys[i].value || '1'}</div>
+                    <div class="item-col">${n.value || 'Item'}</div>
+                    <div class="amt-col">${prices[i].value || '$0.00'}</div>
+                </div>`;
+            }
+        });
+        
+        const content = html || '<div style="text-align:center; color:#999; font-size:10px;">Empty Transaction</div>';
+        document.getElementById('p-items').innerHTML = content;
+        document.getElementById('f-items').innerHTML = content;
+    }
+let printSound;
+    function triggerPrint() {
+        // 1. Create the audio object
+    const printSound = new Audio('ES_HP LaserJet P1006 Printer Printing.mp3.mp3');
+    printSound.load(); // Force the browser to find and load it
+    printSound.play().catch(e => console.error("Playback error:", e));
+    
+// 1. SET THE STARTING POINT (e.g., start at 2.5 seconds)
+    const startTime = 0.2; 
+    const playDuration = 2.2; // How long to play (matches animation)
+    
+    printSound.currentTime = startTime;
+    printSound.play();
+
+    // 2. THE STOP WATCH
+    // This checks the time constantly and kills the sound after the duration
+    const checkTime = setInterval(() => {
+        if (printSound.currentTime >= (startTime + playDuration)) {
+            printSound.pause();
+            printSound.currentTime = startTime; // Reset to your start point
+            clearInterval(checkTime);
+        }
+    }, 10); // Checks every 10ms for perfect precision
+
+    // 3. YOUR ANIMATION LOGIC
+    const receipt = document.getElementById('final-receipt');
+    receipt.classList.remove('print-active');
+    void receipt.offsetWidth; 
+    receipt.classList.add('print-active');
+
+    // 4. THE SYSTEM DELAY (as we discussed before)
+    setTimeout(() => {
+        window.print();
+    }, 3500); // Animation (3.5s) + Your Delay (2s)
+    }    
+
+    function resetAll() {
+        document.getElementById('items-list').innerHTML = `
+            <div class="input-group">
+                <input type="text" placeholder="QTY" class="qty-in" oninput="updateAll()">
+                <input type="text" placeholder="Item" class="n-in" oninput="updateAll()">
+                <input type="text" placeholder="AMT" class="p-in" style="width: 100px" oninput="updateAll()">
+            </div>`;
+        document.getElementById('subtotalIn').value = "";
+        document.getElementById('totalIn').value = "";
+        document.getElementById('final-receipt').classList.remove('print-active');
+        updateAll();
+    }
+</script>
+
+</body>
+</html>
